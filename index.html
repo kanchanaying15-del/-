@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔥 ห้องทดลองและเกมภารกิจพลังงานความร้อน ม.1 (Thermal Quest)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Mitr, Kanit, Sarabun -->
+    <link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=Kanit:wght@400;600;700&family=Sarabun:wght@400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- MediaPipe CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mitr: ['Mitr', 'sans-serif'],
+                        kanit: ['Kanit', 'sans-serif'],
+                        sarabun: ['Sarabun', 'sans-serif'],
+                    },
+                    colors: {
+                        pastelPink: '#ffb3c6',
+                        pastelHot: '#ff758f',
+                        pastelBlue: '#a0c4ff',
+                        pastelCyan: '#9bf6ff',
+                        pastelYellow: '#fdffb6',
+                        pastelGreen: '#caffbf',
+                        pastelPurple: '#e7c6ff',
+                        pastelOrange: '#ffd6a5',
+                        neonGreen: '#00ff66',
+                        labBg: '#181124',
+                        cardDark: '#281e36',
+                        cardLight: '#392b4d'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background: linear-gradient(135deg, #181124 0%, #291838 50%, #15102a 100%);
+            color: #f8fafc; 
+            overflow-x: hidden; 
+        }
+        h1, h2, h3, h4, .font-title { font-family: 'Mitr', 'Kanit', sans-serif; }
+        
+        .glass-panel { 
+            background: rgba(40, 30, 54, 0.88); 
+            backdrop-filter: blur(16px); 
+            border: 2px solid rgba(255, 179, 198, 0.25); 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .btn-cute { 
+            transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            box-shadow: 0 4px 15px rgba(255, 117, 143, 0.35);
+        }
+        .btn-cute:hover { 
+            transform: translateY(-3px) scale(1.02); 
+            box-shadow: 0 8px 25px rgba(255, 117, 143, 0.6);
+        }
+        .btn-cute:active { transform: translateY(1px) scale(0.98); }
+
+        .neon-green-glow {
+            box-shadow: 0 0 15px #00ff66, inset 0 0 10px #00ff66;
+            border-color: #00ff66 !important;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #181124; }
+        ::-webkit-scrollbar-thumb { background: #ffb3c6; border-radius: 20px; }
+        canvas { touch-action: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between select-none">
+
+    <header class="bg-cardDark/90 border-b border-pink-300/20 sticky top-0 z-50 px-4 py-3 backdrop-blur-md shadow-lg">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-400 via-rose-400 to-amber-300 flex items-center justify-center text-white text-2xl shadow-lg border-2 border-white/40 animate-bounce">
+                    🔥
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-pink-300 via-amber-200 to-cyan-300 bg-clip-text text-transparent flex items-center gap-2">
+                        🔥 ห้องทดลองและเกมภารกิจพลังงานความร้อน ม.1 (Thermal Quest)
+                    </h1>
+                    <p class="text-xs text-purple-200/80">ระบบตรวจจับท่าวางอวัยวะด้วยไฟสีเขียวสว่าง (Green Landmark Visualizer) 🟢</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 md:space-x-3 bg-cardLight/80 px-3 py-1.5 md:px-4 md:py-2 rounded-2xl border border-pink-300/30 shadow-inner">
+                <div class="text-center px-1">
+                    <span class="text-[10px] text-pink-200 block">⭐ คะแนน</span>
+                    <span id="scoreDisplay" class="text-lg font-bold text-amber-300">0</span>
+                </div>
+                <div class="h-6 w-[1px] bg-pink-300/20"></div>
+                <div class="text-center px-1">
+                    <span class="text-[10px] text-pink-200 block">🌟 ดวงดาว</span>
+                    <span id="starsDisplay" class="text-lg font-bold text-yellow-300 flex items-center gap-1">
+                        🌟 0/21
+                    </span>
+                </div>
+                <div class="h-6 w-[1px] bg-pink-300/20"></div>
+                
+                <button id="sensToggleBtn" onclick="toggleSensitivity()" class="px-2.5 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-purple-900 via-pink-900 to-purple-900 hover:brightness-125 text-amber-300 border border-amber-300/40 flex items-center gap-1.5 btn-cute shadow-md">
+                    <i class="fa-solid fa-gauge-high text-pink-300 animate-pulse"></i> <span id="sensText">ความไว: สูงพิเศษ ⚡</span>
+                </button>
+
+                <button id="toggleCameraBtn" onclick="toggleWebcamMode()" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-400 hover:to-purple-400 text-white flex items-center gap-1.5 btn-cute border border-white/20">
+                    <i class="fa-solid fa-camera"></i> <span id="cameraBtnText">กล้อง: ปิด</span>
+                </button>
+                <button id="audioToggleBtn" onclick="toggleCuteAudio()" class="p-2 text-xs font-semibold rounded-xl bg-purple-900/60 hover:bg-purple-800 text-pink-200 border border-pink-300/30">
+                    <i id="audioIcon" class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto w-full p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 my-2">
+        
+        <!-- Left Sidebar: Level Selector & Webcam Frame Guide -->
+        <div class="lg:col-span-4 space-y-4">
+            
+            <div class="glass-panel p-4 rounded-3xl">
+                <h3 class="text-sm font-bold text-pink-200 mb-3 flex items-center gap-2">
+                    <span class="text-lg">🗺️</span> 7 ด่านทดลองวิทยาศาสตร์ (โหมดนั่งโต๊ะ)
+                </h3>
+                <div class="space-y-2 max-h-[320px] overflow-y-auto pr-1">
+                    
+                    <button onclick="selectLevel(1)" id="lvlBtn-1" class="w-full p-2.5 rounded-2xl border text-left transition flex items-center justify-between bg-pink-900/50 border-pink-400 text-pink-100 shadow-md">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-pink-400 text-slate-900 font-bold flex items-center justify-center text-xs shadow">1</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">การถ่ายโอนความร้อน 🔥</div>
+                                <div class="text-[10px] text-pink-200">ชูนิ้วชี้/คลิกลาก ตัวนำ vs ฉนวน</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-1" class="fa-solid fa-star text-xs text-yellow-300"></i>
+                    </button>
+
+                    <button onclick="selectLevel(2)" id="lvlBtn-2" class="w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-purple-800 text-purple-200 font-bold flex items-center justify-center text-xs">2</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">โมเลกุลแดนซ์ 🧊💧🌫️</div>
+                                <div class="text-[10px] text-purple-300">โบกมือ/ผงกหัวเบาๆ สั่นโมเลกุล</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-2" class="fa-solid fa-lock text-xs text-purple-400"></i>
+                    </button>
+
+                    <button onclick="selectLevel(3)" id="lvlBtn-3" class="w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-purple-800 text-purple-200 font-bold flex items-center justify-center text-xs">3</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">เป่าลมเย็นระเหย ☕💨</div>
+                                <div class="text-[10px] text-purple-300">ทำปากเป่า/อ้าปาก หรือคลิกเป่าลม</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-3" class="fa-solid fa-lock text-xs text-purple-400"></i>
+                    </button>
+
+                    <button onclick="selectLevel(4)" id="lvlBtn-4" class="w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-purple-800 text-purple-200 font-bold flex items-center justify-center text-xs">4</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">รังสีสีสันสุดน่ารัก ☀️🎨</div>
+                                <div class="text-[10px] text-purple-300">ชู 1, 2, 3 นิ้ว/ชี้เลือกแก้วสี</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-4" class="fa-solid fa-lock text-xs text-purple-400"></i>
+                    </button>
+
+                    <button onclick="selectLevel(5)" id="lvlBtn-5" class="w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-purple-800 text-purple-200 font-bold flex items-center justify-center text-xs">5</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">ระบำขยายตัวความร้อน 📏✨</div>
+                                <div class="text-[10px] text-amber-300 font-semibold">กางมือ/ยกมือขึ้น-ลง หน้ากล้อง</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-5" class="fa-solid fa-lock text-xs text-purple-400"></i>
+                    </button>
+
+                    <button onclick="selectLevel(6)" id="lvlBtn-6" class="w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-purple-800 text-purple-200 font-bold flex items-center justify-center text-xs">6</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">จับฉนวน & ตัวนำ 🤸‍♀️🎯</div>
+                                <div class="text-[10px] text-amber-300 font-semibold">เอียงหัว ซ้าย-ขวา เลื่อนตะกร้า</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-6" class="fa-solid fa-lock text-xs text-purple-400"></i>
+                    </button>
+
+                    <button onclick="selectLevel(7)" id="lvlBtn-7" class="w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-7 h-7 rounded-full bg-purple-800 text-purple-200 font-bold flex items-center justify-center text-xs">7</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">สมดุลความร้อน 🏋️‍♀️⚖️</div>
+                                <div class="text-[10px] text-amber-300 font-semibold">ยักคิ้ว/อ้าปาก/ยกมือ ปรับสมดุล</div>
+                            </div>
+                        </div>
+                        <i id="lvlCheck-7" class="fa-solid fa-lock text-xs text-purple-400"></i>
+                    </button>
+
+                </div>
+            </div>
+
+            <!-- MediaPipe Camera Visualizer with Green Detection Highlight -->
+            <div class="glass-panel p-4 rounded-3xl relative overflow-hidden">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-cyan-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-video text-emerald-400 animate-pulse"></i> แสดงเส้นอวัยวะสีเขียว (Green Detection)
+                    </span>
+                    <span id="mediaPipeStatus" class="text-[10px] px-2.5 py-0.5 rounded-full bg-purple-950 text-amber-300 border border-amber-400/40 font-semibold">โหมด Mouse/Touch</span>
+                </div>
+
+                <div id="webcamFrameContainer" class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border-2 border-pink-300/30 flex items-center justify-center shadow-inner">
+                    <video id="webcamVideo" class="w-full h-full object-cover hidden -scale-x-100" playsinline></video>
+                    <!-- Overlay Canvas for Green Skeleton Landmarks -->
+                    <canvas id="webcamOverlay" class="absolute top-0 left-0 w-full h-full -scale-x-100 pointer-events-none"></canvas>
+                    
+                    <!-- Green Feedback Badge -->
+                    <div id="greenDetectedBadge" class="absolute top-2 left-2 bg-emerald-950/90 border border-emerald-400 text-emerald-300 text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg hidden">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>✅ ตรวจจับอวัยวะถูกต้อง</span>
+                    </div>
+
+                    <div id="noCamPlaceholder" class="text-center p-3 text-purple-300">
+                        <span class="text-3xl mb-1 block">📹🟢</span>
+                        <p class="text-[11px] font-semibold">ไม่ได้เปิดกล้อง (แสดงเส้นสีเขียวเมื่อเปิดกล้อง)</p>
+                        <button onclick="toggleWebcamMode()" class="mt-2 text-[10px] px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl shadow btn-cute font-bold">เปิดกล้อง MediaPipe Green Feedback</button>
+                    </div>
+                </div>
+
+                <div class="mt-3 bg-cardDark p-2.5 rounded-2xl border border-pink-300/20 text-xs space-y-1">
+                    <div class="flex justify-between text-[11px] text-pink-200 font-semibold">
+                        <span>ค่าการตรวจจับอวัยวะ (Seated Green Feedback)</span>
+                        <span id="sensorValueText" class="text-emerald-400 font-bold">0%</span>
+                    </div>
+                    <div class="w-full bg-purple-950 h-3 rounded-full overflow-hidden p-0.5 border border-pink-300/20">
+                        <div id="sensorProgressBar" class="bg-gradient-to-r from-cyan-300 via-emerald-400 to-amber-300 h-full w-0% rounded-full transition-all duration-150"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Side: Game Stage Canvas & Controls -->
+        <div class="lg:col-span-8 space-y-4">
+            
+            <div class="glass-panel p-4 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-2 border-pink-300/30">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="currentLvlBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-pink-500/30 text-pink-200 border border-pink-400/50">ด่านที่ 1</span>
+                        <h2 id="lvlTitle" class="text-lg font-bold text-white">การถ่ายโอนความร้อนในวัสดุ 🔥</h2>
+                    </div>
+                    <p id="lvlDesc" class="text-xs text-purple-200/90 mt-1">จับหรือคลิกลาก "ตัวนำความร้อน" ไปวางที่แกนเตา เพื่อซ่อมแซมแผงระบายความร้อน</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <div class="bg-cardDark/90 px-4 py-2 rounded-2xl border-2 border-amber-300/40 text-center shadow">
+                        <span class="text-[10px] text-amber-200 block font-semibold">⏳ เวลาคงเหลือ</span>
+                        <span id="timerDisplay" class="text-xl font-bold text-amber-300">02:00</span>
+                    </div>
+                    <button onclick="resetCurrentLevel()" class="px-3 py-2 bg-purple-900/80 hover:bg-purple-800 rounded-2xl border border-pink-300/30 text-pink-200 text-xs font-semibold btn-cute">
+                        <i class="fa-solid fa-rotate-right"></i> เริ่มใหม่
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas Stage Area -->
+            <div class="glass-panel p-3 md:p-5 rounded-3xl relative overflow-hidden flex flex-col items-center justify-center min-h-[440px] border-2 border-pink-300/30 shadow-2xl">
+                
+                <canvas id="labCanvas" width="800" height="430" class="w-full h-auto bg-slate-950 rounded-2xl border-2 border-purple-500/30 cursor-crosshair shadow-2xl"></canvas>
+
+                <!-- Floating Seated Action Hints -->
+                <div id="gameOverlayHint" class="absolute top-8 left-8 bg-cardDark/90 backdrop-blur px-3.5 py-2 rounded-2xl border border-pink-300/40 text-xs text-pink-100 flex items-center gap-2 shadow-lg z-10">
+                    <span class="animate-bounce text-base">🪑🟢</span>
+                    <span id="controlHintText">นั่งเรียนสบายๆ ชูมือหรือเอียงหัวเพื่อสั่งการในด่านนี้</span>
+                </div>
+
+                <!-- On-Screen Fallback Controls Overlay -->
+                <div id="fallbackControlBar" class="absolute bottom-6 bg-cardDark/95 backdrop-blur px-4 py-2 rounded-2xl border border-cyan-300/40 text-xs text-cyan-200 flex items-center gap-3 shadow-2xl hidden z-10">
+                    <span class="font-bold text-amber-300 text-[11px]">🎮 ปุ่มจำลองขยับง่าย:</span>
+                    <div id="fallbackButtonsArea" class="flex gap-2"></div>
+                </div>
+
+                <!-- Result Modal -->
+                <div id="resultModal" class="absolute inset-0 bg-purple-950/90 backdrop-blur-md flex items-center justify-center hidden z-20 p-4">
+                    <div class="glass-panel p-6 md:p-8 rounded-3xl max-w-md w-full text-center space-y-4 border-2 border-pink-300/50 shadow-2xl">
+                        <div id="resultIcon" class="w-20 h-20 rounded-full bg-gradient-to-tr from-pink-400 to-amber-300 text-white flex items-center justify-center mx-auto text-4xl shadow-lg border-2 border-white/50 animate-bounce">
+                            🌟
+                        </div>
+                        <h3 id="resultTitle" class="text-2xl font-bold bg-gradient-to-r from-pink-200 to-amber-200 bg-clip-text text-transparent">เก่งมากเลย! ภารกิจสำเร็จ 🎉</h3>
+                        <p id="resultMsg" class="text-xs text-purple-200 leading-relaxed">น้องๆ เรียนรู้หลักการวิทยาศาสตร์พลังงานความร้อนผ่านท่าทางนั่งเรียนอย่างสะดวกและรวดเร็ว!</p>
+                        
+                        <div class="bg-cardDark p-4 rounded-2xl border border-pink-300/30 flex justify-around text-center">
+                            <div>
+                                <span class="text-[11px] text-pink-200 block">คะแนนสะสม</span>
+                                <span id="modalScore" class="text-2xl font-bold text-amber-300">180</span>
+                            </div>
+                            <div class="h-8 w-[1px] bg-pink-300/20"></div>
+                            <div>
+                                <span class="text-[11px] text-pink-200 block">ดาวที่ได้รับ</span>
+                                <div id="modalStars" class="text-yellow-300 text-base font-bold mt-1">
+                                    🌟 🌟 🌟
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-2">
+                            <button onclick="resetCurrentLevel()" class="flex-1 py-3 bg-purple-900/80 hover:bg-purple-800 text-pink-200 rounded-2xl text-xs font-bold border border-pink-300/30 transition btn-cute">
+                                เล่นอีกรอบ
+                            </button>
+                            <button onclick="nextLevel()" id="nextLvlBtn" class="flex-1 py-3 bg-gradient-to-r from-pink-500 via-rose-400 to-amber-400 hover:from-pink-400 hover:to-amber-300 text-white rounded-2xl text-xs font-bold btn-cute shadow-lg">
+                                ด่านต่อไป 🚀
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        const gameState = {
+            currentLevel: 1,
+            score: 0,
+            totalStars: 0,
+            unlockedLevels: [1],
+            timer: 120, // 2 Minutes
+            timerInterval: null,
+            isGameActive: false,
+            cameraActive: false,
+            audioEnabled: true,
+            webcamStream: null,
+            sensitivityMultiplier: 2.8,
+            
+            // Smoothed Seated Inputs
+            handPos: { x: 400, y: 215, isPinching: false },
+            motionEnergy: 0,
+            blowIntensity: 0,
+            bodyStretchRatio: 0.5, 
+            bodyTilt: 0,           
+            squatHeight: 0.5,      
+            
+            // Detection state flag for green visualizer
+            detectedGreen: false,
+
+            // Level runtime state
+            level1Items: [],
+            level1Targets: [],
+            molecules: [],
+            temperature: 0,
+            liquidTemp: 95,
+            cups: [],
+            expansionTarget: 'expand',
+            expansionProgress: 0,
+            fallingItems: [],
+            catcherPos: 400,
+            equilCurrentTemp: 80,
+            equilTargetTemp: 50,
+            equilProgress: 0
+        };
+
+        function smoothValue(current, target, alpha = 0.35) {
+            return current + (target - current) * alpha;
+        }
+
+        function toggleSensitivity() {
+            if (gameState.sensitivityMultiplier === 2.8) {
+                gameState.sensitivityMultiplier = 1.8;
+                document.getElementById('sensText').innerText = "ความไว: ปานกลาง";
+            } else if (gameState.sensitivityMultiplier === 1.8) {
+                gameState.sensitivityMultiplier = 3.8;
+                document.getElementById('sensText').innerText = "ความไว: สูงสุด (ตอบสนองไว)";
+            } else {
+                gameState.sensitivityMultiplier = 2.8;
+                document.getElementById('sensText').innerText = "ความไว: สูงพิเศษ ⚡";
+            }
+            playSFX('pop');
+        }
+
+        let audioCtx = null;
+        function playSFX(type) {
+            if (!gameState.audioEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(1040, now + 0.08);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'success') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.1);
+                    osc.frequency.setValueAtTime(783.99, now + 0.2);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.3);
+                    gain.gain.setValueAtTime(0.3, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(260, now);
+                    osc.frequency.setValueAtTime(180, now + 0.15);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                }
+            } catch (e) {
+                console.log('Audio muted:', e);
+            }
+        }
+
+        function toggleCuteAudio() {
+            gameState.audioEnabled = !gameState.audioEnabled;
+            const icon = document.getElementById('audioIcon');
+            icon.className = gameState.audioEnabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark text-pink-400";
+        }
+
+        const canvas = document.getElementById('labCanvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.addEventListener('mousedown', (e) => {
+            updateMousePos(e);
+            gameState.handPos.isPinching = true;
+            playSFX('pop');
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            updateMousePos(e);
+            if (gameState.currentLevel === 2) gameState.motionEnergy = Math.min(100, gameState.motionEnergy + 8);
+            if (gameState.currentLevel === 6) gameState.catcherPos = gameState.handPos.x;
+        });
+        canvas.addEventListener('mouseup', () => { gameState.handPos.isPinching = false; });
+
+        function updateMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            gameState.handPos.x = (e.clientX - rect.left) * scaleX;
+            gameState.handPos.y = (e.clientY - rect.top) * scaleY;
+        }
+
+        function initLevel1() {
+            document.getElementById('lvlTitle').innerText = 'การถ่ายโอนความร้อนในวัสดุ 🔥';
+            document.getElementById('lvlDesc').innerText = 'ชูมือ/คลิกลาก "ตัวนำความร้อน" (ทองแดง เหล็ก อลูมิเนียม) ไปวางที่แกนเตา';
+            document.getElementById('controlHintText').innerText = 'ชูมือจับหรือคลิกลากวัตถุตัวนำความร้อนไปใส่ที่ "ช่องแกนเตา"';
+            document.getElementById('fallbackControlBar').classList.add('hidden');
+
+            gameState.level1Items = [
+                { id: 1, name: 'ทองแดง 🥉', isConductor: true, x: 120, y: 110, r: 38, color: '#f97316', isPlaced: false },
+                { id: 2, name: 'ด้ามไม้ 🪵', isConductor: false, x: 120, y: 215, r: 38, color: '#a16207', isPlaced: false },
+                { id: 3, name: 'แท่งเหล็ก ⚙️', isConductor: true, x: 120, y: 320, r: 38, color: '#cbd5e1', isPlaced: false },
+                { id: 4, name: 'ยางพารา 🔴', isConductor: false, x: 680, y: 110, r: 38, color: '#f43f5e', isPlaced: false },
+                { id: 5, name: 'อลูมิเนียม 🪙', isConductor: true, x: 680, y: 215, r: 38, color: '#e2e8f0', isPlaced: false },
+                { id: 6, name: 'พลาสติก 🟡', isConductor: false, x: 680, y: 320, r: 38, color: '#eab308', isPlaced: false }
+            ];
+
+            gameState.level1Targets = [
+                { x: 310, y: 215, r: 48, filled: false },
+                { x: 400, y: 215, r: 48, filled: false },
+                { x: 490, y: 215, r: 48, filled: false }
+            ];
+        }
+
+        function updateAndDrawLevel1() {
+            ctx.fillStyle = '#281e36';
+            ctx.beginPath();
+            ctx.roundRect(230, 110, 340, 210, 24);
+            ctx.fill();
+            ctx.strokeStyle = '#ff758f';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffb3c6';
+            ctx.font = 'bold 16px Mitr';
+            ctx.textAlign = 'center';
+            ctx.fillText('🔥 แกนเตานำความร้อนพาสเทล', 400, 145);
+
+            gameState.level1Targets.forEach((tgt) => {
+                ctx.fillStyle = tgt.filled ? 'rgba(0, 255, 102, 0.25)' : 'rgba(255, 255, 255, 0.08)';
+                ctx.strokeStyle = tgt.filled ? '#00ff66' : '#a0c4ff';
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.arc(tgt.x, tgt.y, tgt.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            gameState.level1Items.forEach((item) => {
+                if (item.isPlaced) return;
+                const dist = Math.hypot(gameState.handPos.x - item.x, gameState.handPos.y - item.y);
+                if (dist < item.r && gameState.handPos.isPinching) {
+                    item.x = gameState.handPos.x;
+                    item.y = gameState.handPos.y;
+                }
+
+                if (!gameState.handPos.isPinching) {
+                    gameState.level1Targets.forEach((tgt) => {
+                        if (!tgt.filled && Math.hypot(item.x - tgt.x, item.y - tgt.y) < tgt.r) {
+                            if (item.isConductor) {
+                                item.isPlaced = true;
+                                tgt.filled = true;
+                                playSFX('success');
+                                addScore(60);
+                                if (gameState.level1Targets.every(t => t.filled)) completeLevel(1);
+                            } else {
+                                playSFX('error');
+                                item.x = item.x > 400 ? 680 : 120;
+                            }
+                        }
+                    });
+                }
+
+                ctx.fillStyle = item.color;
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, item.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 12px Kanit';
+                ctx.fillText(item.name, item.x, item.y + 4);
+            });
+        }
+
+        function initLevel2() {
+            document.getElementById('lvlTitle').innerText = 'โมเลกุลแดนซ์และการเปลี่ยนสถานะ 🧊💧🌫️';
+            document.getElementById('lvlDesc').innerText = 'โบกมือหรือผงกหัวเบาๆ เพื่อเพิ่มพลังงานจลน์ สั่นโมเลกุลน้ำแข็งให้เดือดถึง 100°C!';
+            document.getElementById('controlHintText').innerText = 'โบกมือ/ขยับหัวเบาๆ หรือวนเมาส์ ทำให้อุณหภูมิสูงขึ้น';
+            document.getElementById('fallbackControlBar').classList.add('hidden');
+
+            gameState.temperature = 0;
+            gameState.molecules = [];
+            for (let i = 0; i < 45; i++) {
+                gameState.molecules.push({
+                    x: 310 + Math.random() * 180,
+                    y: 200 + Math.random() * 120,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    radius: 8
+                });
+            }
+        }
+
+        function updateAndDrawLevel2() {
+            gameState.motionEnergy = Math.max(0, gameState.motionEnergy - 0.3);
+            if (gameState.motionEnergy > 2) {
+                gameState.temperature = Math.min(100, gameState.temperature + (gameState.motionEnergy / 90));
+            }
+
+            ctx.fillStyle = '#281e36';
+            ctx.beginPath();
+            ctx.roundRect(50, 40, 24, 330, 12);
+            ctx.fill();
+
+            const tempFillHeight = (gameState.temperature / 100) * 310;
+            ctx.fillStyle = gameState.temperature > 75 ? '#ff758f' : (gameState.temperature > 30 ? '#ffd6a5' : '#70d6ff');
+            ctx.beginPath();
+            ctx.roundRect(53, 365 - tempFillHeight, 18, tempFillHeight, 9);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Mitr';
+            ctx.textAlign = 'left';
+            ctx.fillText(`อุณหภูมิ: ${Math.floor(gameState.temperature)}°C 🌡️`, 90, 65);
+
+            ctx.strokeStyle = '#e7c6ff';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(260, 110, 280, 250);
+
+            const speedMultiplier = 0.2 + (gameState.temperature / 8);
+            gameState.molecules.forEach(m => {
+                m.x += m.vx * speedMultiplier;
+                m.y += m.vy * speedMultiplier;
+
+                if (m.x - m.radius < 260 || m.x + m.radius > 540) m.vx *= -1;
+                if (m.y - m.radius < 110 || m.y + m.radius > 360) m.vy *= -1;
+
+                ctx.fillStyle = gameState.temperature > 70 ? '#ff758f' : '#70d6ff';
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            document.getElementById('sensorValueText').innerText = `${Math.floor(gameState.motionEnergy)}%`;
+            document.getElementById('sensorProgressBar').style.width = `${gameState.motionEnergy}%`;
+
+            if (gameState.temperature >= 100) completeLevel(2);
+        }
+
+        function initLevel3() {
+            document.getElementById('lvlTitle').innerText = 'เป่าลมเย็นระเหยความร้อน ☕💨';
+            document.getElementById('lvlDesc').innerText = 'ทำปากเป่าลม/อ้าปาก หรือคลิกปุ่มเป่าลม เพื่อลดอุณหภูมิชาร้อนเหลือ 37°C!';
+            document.getElementById('controlHintText').innerText = 'ทำปากเป่าลมเบาๆ หน้ากล้อง หรือกดปุ่ม "เป่าลมระบายความร้อน"';
+            document.getElementById('fallbackControlBar').classList.add('hidden');
+
+            gameState.liquidTemp = 95;
+            gameState.blowIntensity = 0;
+        }
+
+        function updateAndDrawLevel3() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.strokeStyle = '#ffb3c6';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(320, 140);
+            ctx.lineTo(320, 330);
+            ctx.lineTo(480, 330);
+            ctx.lineTo(480, 140);
+            ctx.stroke();
+
+            const liquidHeight = 150;
+            const tempRatio = (gameState.liquidTemp - 30) / 65;
+            ctx.fillStyle = `rgba(${Math.floor(tempRatio * 255)}, 117, 143, 0.85)`;
+            ctx.fillRect(324, 326 - liquidHeight, 152, liquidHeight);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 26px Mitr';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${Math.floor(gameState.liquidTemp)} °C ☕`, 400, 255);
+
+            ctx.fillStyle = '#ff758f';
+            ctx.beginPath();
+            ctx.roundRect(300, 365, 200, 45, 14);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 15px Kanit';
+            ctx.fillText('💨 คลิกเป่าลมเย็นตรงนี้', 400, 392);
+
+            if (gameState.handPos.isPinching && gameState.handPos.x > 300 && gameState.handPos.x < 500 && gameState.handPos.y > 365 && gameState.handPos.y < 410) {
+                gameState.blowIntensity = 45;
+                playSFX('pop');
+            }
+
+            if (gameState.blowIntensity > 2) {
+                gameState.liquidTemp = Math.max(35, gameState.liquidTemp - (gameState.blowIntensity / 45));
+                gameState.blowIntensity -= 0.8;
+            }
+
+            document.getElementById('sensorValueText').innerText = `${Math.floor(gameState.blowIntensity)}%`;
+            document.getElementById('sensorProgressBar').style.width = `${gameState.blowIntensity}%`;
+
+            if (gameState.liquidTemp <= 37) completeLevel(3);
+        }
+
+        function initLevel4() {
+            document.getElementById('lvlTitle').innerText = 'รังสีความร้อนกับสีสันน่ารัก ☀️🎨';
+            document.getElementById('lvlDesc').innerText = 'สังเกตแก้วสีเข้ม (สีดำ) ใต้แสงแดดสดใส ซึ่งจะดูดกลืนความร้อนได้เร็วจนถึง 60°C!';
+            document.getElementById('controlHintText').innerText = 'ชู 1, 2, 3 นิ้ว หรือคลิกเลือกเพื่อทดสอบการดูดกลืนความร้อน';
+            document.getElementById('fallbackControlBar').classList.add('hidden');
+
+            gameState.cups = [
+                { id: 'black', name: 'แก้วสีดำ 🖤', color: '#1e293b', absorbRate: 0.85, temp: 25, x: 250, y: 260, r: 42 },
+                { id: 'pink', name: 'แก้วสีชมพู 🩷', color: '#ffb3c6', absorbRate: 0.35, temp: 25, x: 400, y: 260, r: 42 },
+                { id: 'silver', name: 'แก้วเงินเงา 🩶', color: '#cbd5e1', absorbRate: 0.15, temp: 25, x: 550, y: 260, r: 42 }
+            ];
+        }
+
+        function updateAndDrawLevel4() {
+            ctx.fillStyle = '#ffd6a5';
+            ctx.beginPath();
+            ctx.arc(400, 65, 38, 0, Math.PI * 2);
+            ctx.fill();
+
+            gameState.cups.forEach((cup) => {
+                cup.temp = Math.min(65, cup.temp + (cup.absorbRate * 0.16));
+
+                ctx.fillStyle = cup.color;
+                ctx.beginPath();
+                ctx.arc(cup.x, cup.y, cup.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#9bf6ff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = cup.id === 'pink' ? '#281e36' : '#ffffff';
+                ctx.font = 'bold 13px Kanit';
+                ctx.textAlign = 'center';
+                ctx.fillText(cup.name, cup.x, cup.y - 5);
+
+                ctx.fillStyle = '#ffd6a5';
+                ctx.font = 'bold 15px Mitr';
+                ctx.fillText(`${Math.floor(cup.temp)} °C`, cup.x, cup.y + 16);
+            });
+
+            const blackCup = gameState.cups.find(c => c.id === 'black');
+            if (blackCup && blackCup.temp >= 60) completeLevel(4);
+        }
+
+        function initLevel5() {
+            document.getElementById('lvlTitle').innerText = 'ระบำขยายตัวทางความร้อน 📏✨';
+            document.getElementById('lvlDesc').innerText = 'กางมือออกห่างกัน หรือชูมือขึ้น-ลง หน้ากล้อง เพื่อจำลองการ "ขยายตัว" เมื่อร้อน และ "หดตัว" เมื่อเย็น!';
+            document.getElementById('controlHintText').innerText = 'กางมือออกเพื่อขยายตัว หรือหุบมือเข้าชิดกันเพื่อหดตัว';
+            
+            const fbBar = document.getElementById('fallbackControlBar');
+            fbBar.classList.remove('hidden');
+            document.getElementById('fallbackButtonsArea').innerHTML = `
+                <button onclick="gameState.bodyStretchRatio = 0.85" class="px-3 py-1 bg-pink-500 text-white rounded-xl font-semibold btn-cute">✋ กางมือขยายตัว (Hot)</button>
+                <button onclick="gameState.bodyStretchRatio = 0.15" class="px-3 py-1 bg-cyan-500 text-white rounded-xl font-semibold btn-cute">✊ หุบมือหดตัว (Cold)</button>
+            `;
+
+            gameState.expansionTarget = 'expand';
+            gameState.expansionProgress = 0;
+            gameState.bodyStretchRatio = 0.5;
+        }
+
+        function updateAndDrawLevel5() {
+            const isExpandReq = gameState.expansionTarget === 'expand';
+            
+            ctx.fillStyle = isExpandReq ? '#ff758f' : '#70d6ff';
+            ctx.beginPath();
+            ctx.roundRect(180, 30, 440, 50, 16);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 17px Mitr';
+            ctx.textAlign = 'center';
+            ctx.fillText(isExpandReq ? '🔥 ความร้อนเข้า! กางมือหรือยกมือสูงขึ้น "ขยายตัว"' : '🧊 ความเย็นมา! หุบมือเข้าชิดกัน "หดตัว"', 400, 62);
+
+            const isMatched = (isExpandReq && gameState.bodyStretchRatio > 0.55) || (!isExpandReq && gameState.bodyStretchRatio < 0.40);
+            if (isMatched) {
+                gameState.expansionProgress = Math.min(100, gameState.expansionProgress + 1.2);
+                playSFX('pop');
+            }
+
+            const currentSize = 60 + (gameState.bodyStretchRatio * 110);
+            ctx.strokeStyle = isExpandReq ? '#ffd6a5' : '#9bf6ff';
+            ctx.lineWidth = 12;
+            ctx.beginPath();
+            ctx.arc(400, 220, currentSize, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px Kanit';
+            ctx.fillText(`ขนาดวัตถุขยายตัว: ${Math.floor(currentSize)} mm`, 400, 225);
+
+            ctx.fillStyle = '#281e36';
+            ctx.beginPath();
+            ctx.roundRect(200, 350, 400, 24, 12);
+            ctx.fill();
+            ctx.fillStyle = '#00ff66';
+            ctx.beginPath();
+            ctx.roundRect(202, 352, (gameState.expansionProgress / 100) * 396, 20, 10);
+            ctx.fill();
+
+            document.getElementById('sensorValueText').innerText = `${Math.floor(gameState.bodyStretchRatio * 100)}%`;
+            document.getElementById('sensorProgressBar').style.width = `${gameState.bodyStretchRatio * 100}%`;
+
+            if (gameState.expansionProgress >= 100) {
+                if (gameState.expansionTarget === 'expand') {
+                    gameState.expansionTarget = 'contract';
+                    gameState.expansionProgress = 0;
+                    playSFX('success');
+                } else {
+                    completeLevel(5);
+                }
+            }
+        }
+
+        function initLevel6() {
+            document.getElementById('lvlTitle').innerText = 'จับฉนวน & ตัวนำความร้อน 🤸‍♀️🎯';
+            document.getElementById('lvlDesc').innerText = 'เอียงศีรษะ ซ้าย-ขวา เบาๆ หน้ากล้อง เลื่อนตะกร้ารับไอเทม "ตัวนำความร้อน" ให้ครบ 10 ชิ้น!';
+            document.getElementById('controlHintText').innerText = 'เอียงหัวซ้าย-ขวาเบาๆ ขณะนั่งเรียน หรือเลื่อนเมาส์ไปมาเพื่อย้ายตะกร้า';
+
+            const fbBar = document.getElementById('fallbackControlBar');
+            fbBar.classList.remove('hidden');
+            document.getElementById('fallbackButtonsArea').innerHTML = `
+                <button onclick="gameState.catcherPos = Math.max(120, gameState.catcherPos - 90)" class="px-3 py-1 bg-purple-600 text-white rounded-xl font-semibold btn-cute">⬅️ เอียงซ้าย</button>
+                <button onclick="gameState.catcherPos = Math.min(680, gameState.catcherPos + 90)" class="px-3 py-1 bg-purple-600 text-white rounded-xl font-semibold btn-cute">➡️ เอียงขวา</button>
+            `;
+
+            gameState.fallingItems = [];
+            gameState.catcherPos = 400;
+            gameState.scoreLvl6 = 0;
+        }
+
+        function updateAndDrawLevel6() {
+            if (Math.random() < 0.038 && gameState.fallingItems.length < 5) {
+                const isConductor = Math.random() > 0.4;
+                const names = isConductor ? ['หม้อโลหะ 🍲', 'ช้อนเหล็ก 🥄', 'ทองแดง ⚡'] : ['ถุงมือผ้า 🧤', 'พลาสติก 📏', 'แก้วน้ำ 🥤'];
+                gameState.fallingItems.push({
+                    x: 100 + Math.random() * 600,
+                    y: 20,
+                    isConductor: isConductor,
+                    name: names[Math.floor(Math.random() * names.length)],
+                    speed: 2 + Math.random() * 2
+                });
+            }
+
+            if (Math.abs(gameState.bodyTilt) > 0.03) {
+                const targetCatcher = 400 + (gameState.bodyTilt * 450 * (gameState.sensitivityMultiplier / 2.0));
+                gameState.catcherPos = smoothValue(gameState.catcherPos, Math.max(100, Math.min(700, targetCatcher)), 0.35);
+            }
+
+            ctx.fillStyle = '#ff758f';
+            ctx.beginPath();
+            ctx.roundRect(gameState.catcherPos - 60, 360, 120, 35, 12);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 13px Kanit';
+            ctx.textAlign = 'center';
+            ctx.fillText('📥 รับตัวนำความร้อน', gameState.catcherPos, 382);
+
+            for (let i = gameState.fallingItems.length - 1; i >= 0; i--) {
+                const item = gameState.fallingItems[i];
+                item.y += item.speed;
+
+                ctx.fillStyle = item.isConductor ? '#ffd6a5' : '#a0c4ff';
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, 22, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'bold 11px Kanit';
+                ctx.fillText(item.name, item.x, item.y + 4);
+
+                if (item.y >= 350 && Math.abs(item.x - gameState.catcherPos) < 65) {
+                    if (item.isConductor) {
+                        gameState.scoreLvl6++;
+                        addScore(20);
+                        playSFX('success');
+                    } else {
+                        playSFX('error');
+                    }
+                    gameState.fallingItems.splice(i, 1);
+                } else if (item.y > 420) {
+                    gameState.fallingItems.splice(i, 1);
+                }
+            }
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px Mitr';
+            ctx.textAlign = 'left';
+            ctx.fillText(`สะสมตัวนำความร้อน: ${gameState.scoreLvl6}/10 ชิ้น`, 40, 50);
+
+            if (gameState.scoreLvl6 >= 10) completeLevel(6);
+        }
+
+        function initLevel7() {
+            document.getElementById('lvlTitle').innerText = 'สมดุลความร้อน 🏋️‍♀️⚖️';
+            document.getElementById('lvlDesc').innerText = 'ยักคิ้ว/อ้าปาก หรือชูมือปรับระดับอุณหภูมิ ให้ตรงกับ "สมดุลความร้อน 50°C"!';
+            document.getElementById('controlHintText').innerText = 'ยักคิ้ว/อ้าปาก หรือยกมือระดับอก เพื่อปรับเกจวัดอุณหภูมิ';
+
+            const fbBar = document.getElementById('fallbackControlBar');
+            fbBar.classList.remove('hidden');
+            document.getElementById('fallbackButtonsArea').innerHTML = `
+                <button onclick="gameState.squatHeight = 0.8" class="px-3 py-1 bg-red-500 text-white rounded-xl font-semibold btn-cute">😮 อ้าปาก/ยกคิ้ว (เพิ่มความร้อน)</button>
+                <button onclick="gameState.squatHeight = 0.2" class="px-3 py-1 bg-cyan-500 text-white rounded-xl font-semibold btn-cute">😐 หุบปาก (ลดความร้อน)</button>
+            `;
+
+            gameState.equilCurrentTemp = 80;
+            gameState.equilTargetTemp = 50;
+            gameState.equilProgress = 0;
+            gameState.squatHeight = 0.5;
+        }
+
+        function updateAndDrawLevel7() {
+            const targetFromSquat = 20 + (gameState.squatHeight * 60);
+            gameState.equilCurrentTemp += (targetFromSquat - gameState.equilCurrentTemp) * 0.08;
+
+            ctx.fillStyle = 'rgba(0, 255, 102, 0.25)';
+            ctx.fillRect(150, 180, 500, 70);
+            ctx.strokeStyle = '#00ff66';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(150, 180, 500, 70);
+
+            ctx.fillStyle = '#00ff66';
+            ctx.font = 'bold 15px Mitr';
+            ctx.textAlign = 'center';
+            ctx.fillText('🎯 โซนสมดุลความร้อน (Thermal Equilibrium: 45°C - 55°C)', 400, 220);
+
+            const tempX = 150 + ((gameState.equilCurrentTemp - 20) / 60) * 500;
+            ctx.fillStyle = '#ff758f';
+            ctx.beginPath();
+            ctx.arc(tempX, 215, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Mitr';
+            ctx.fillText(`อุณหภูมิปัจจุบัน: ${Math.floor(gameState.equilCurrentTemp)}°C`, 400, 110);
+
+            if (gameState.equilCurrentTemp >= 45 && gameState.equilCurrentTemp <= 55) {
+                gameState.equilProgress = Math.min(100, gameState.equilProgress + 0.9);
+                playSFX('pop');
+            }
+
+            ctx.fillStyle = '#281e36';
+            ctx.beginPath();
+            ctx.roundRect(200, 330, 400, 24, 12);
+            ctx.fill();
+            ctx.fillStyle = '#ffd6a5';
+            ctx.beginPath();
+            ctx.roundRect(202, 332, (gameState.equilProgress / 100) * 396, 20, 10);
+            ctx.fill();
+
+            document.getElementById('sensorValueText').innerText = `${Math.floor(gameState.squatHeight * 100)}%`;
+            document.getElementById('sensorProgressBar').style.width = `${gameState.squatHeight * 100}%`;
+
+            if (gameState.equilProgress >= 100) completeLevel(7);
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            if (gameState.isGameActive) {
+                if (gameState.currentLevel === 1) updateAndDrawLevel1();
+                else if (gameState.currentLevel === 2) updateAndDrawLevel2();
+                else if (gameState.currentLevel === 3) updateAndDrawLevel3();
+                else if (gameState.currentLevel === 4) updateAndDrawLevel4();
+                else if (gameState.currentLevel === 5) updateAndDrawLevel5();
+                else if (gameState.currentLevel === 6) updateAndDrawLevel6();
+                else if (gameState.currentLevel === 7) updateAndDrawLevel7();
+
+                // Draw Smooth Seated Hand Target Cursor
+                ctx.fillStyle = gameState.handPos.isPinching ? '#00ff66' : '#ffb3c6';
+                ctx.beginPath();
+                ctx.arc(gameState.handPos.x, gameState.handPos.y, gameState.handPos.isPinching ? 10 : 14, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startTimer() {
+            clearInterval(gameState.timerInterval);
+            gameState.timer = 120;
+            updateTimerDisplay();
+
+            gameState.timerInterval = setInterval(() => {
+                if (!gameState.isGameActive) return;
+                gameState.timer--;
+                updateTimerDisplay();
+
+                if (gameState.timer <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    gameOver();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(gameState.timer / 60).toString().padStart(2, '0');
+            const secs = (gameState.timer % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+        }
+
+        function addScore(pts) {
+            gameState.score += pts;
+            document.getElementById('scoreDisplay').innerText = gameState.score;
+        }
+
+        function selectLevel(lvl) {
+            if (!gameState.unlockedLevels.includes(lvl)) return;
+
+            gameState.currentLevel = lvl;
+            gameState.isGameActive = true;
+            document.getElementById('resultModal').classList.add('hidden');
+
+            for (let i = 1; i <= 7; i++) {
+                const btn = document.getElementById(`lvlBtn-${i}`);
+                if (btn) {
+                    if (i === lvl) {
+                        btn.className = "w-full p-2.5 rounded-2xl border text-left transition flex items-center justify-between bg-pink-900/50 border-pink-400 text-pink-100 shadow-md";
+                    } else if (gameState.unlockedLevels.includes(i)) {
+                        btn.className = "w-full p-2.5 rounded-2xl border border-purple-500/30 text-left hover:bg-purple-900/40 text-purple-200 transition flex items-center justify-between";
+                    }
+                }
+            }
+
+            document.getElementById('currentLvlBadge').innerText = `ด่านที่ ${lvl}`;
+
+            if (lvl === 1) initLevel1();
+            else if (lvl === 2) initLevel2();
+            else if (lvl === 3) initLevel3();
+            else if (lvl === 4) initLevel4();
+            else if (lvl === 5) initLevel5();
+            else if (lvl === 6) initLevel6();
+            else if (lvl === 7) initLevel7();
+
+            startTimer();
+        }
+
+        function resetCurrentLevel() { selectLevel(gameState.currentLevel); }
+
+        function completeLevel(lvl) {
+            gameState.isGameActive = false;
+            clearInterval(gameState.timerInterval);
+            playSFX('success');
+
+            const earnedStars = gameState.timer > 60 ? 3 : (gameState.timer > 30 ? 2 : 1);
+            gameState.totalStars += earnedStars;
+            document.getElementById('starsDisplay').innerHTML = `🌟 ${gameState.totalStars}/21`;
+
+            addScore(150 + gameState.timer * 2);
+
+            if (lvl < 7 && !gameState.unlockedLevels.includes(lvl + 1)) {
+                gameState.unlockedLevels.push(lvl + 1);
+                const nextIcon = document.getElementById(`lvlCheck-${lvl + 1}`);
+                if (nextIcon) nextIcon.className = "fa-solid fa-star text-xs text-yellow-300";
+            }
+
+            document.getElementById('resultTitle').innerText = 'เก่งมากเลย! ภารกิจสำเร็จ 🎉';
+            document.getElementById('resultMsg').innerText = `น้องๆ ผ่านด่านที่ ${lvl} เรียบร้อยแล้ว! ได้เรียนรู้พลังงานความร้อนอย่างสะดวกผ่านโหมดนั่งเรียนหน้าคอม`;
+            document.getElementById('modalScore').innerText = gameState.score;
+            document.getElementById('nextLvlBtn').classList.remove('hidden');
+
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        function nextLevel() {
+            if (gameState.currentLevel < 7) selectLevel(gameState.currentLevel + 1);
+            else document.getElementById('resultModal').classList.add('hidden');
+        }
+
+        function gameOver() {
+            gameState.isGameActive = false;
+            playSFX('error');
+
+            document.getElementById('resultTitle').innerText = 'หมดเวลาแล้วน้า ⏳';
+            document.getElementById('resultMsg').innerText = 'ไม่เป็นไรเลยนะ! ลองใหม่อีกครั้งเพื่อสะสมความรู้ความร้อนกันเลย';
+            document.getElementById('modalScore').innerText = gameState.score;
+            document.getElementById('nextLvlBtn').classList.add('hidden');
+
+            document.getElementById('resultModal').classList.remove('hidden');
+        }
+
+        async function toggleWebcamMode() {
+            const video = document.getElementById('webcamVideo');
+            const placeholder = document.getElementById('noCamPlaceholder');
+            const statusText = document.getElementById('mediaPipeStatus');
+            const camBtnText = document.getElementById('cameraBtnText');
+
+            if (!gameState.cameraActive) {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    await video.play();
+
+                    video.classList.remove('hidden');
+                    placeholder.classList.add('hidden');
+                    statusText.innerText = 'MediaPipe Green Visualizer ✨';
+                    statusText.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-400/40 font-semibold';
+                    camBtnText.innerText = 'กล้อง: เปิดแล้ว';
+                    gameState.cameraActive = true;
+                    gameState.webcamStream = stream;
+
+                    initMediaPipePose(video);
+                    initMediaPipeHands(video);
+                    initMediaPipeFaceMesh(video);
+                } catch (err) {
+                    alert('ไม่สามารถเปิดใช้งานกล้องได้ ระบบจะใช้การเล่นด้วย Mouse/Touch/Buttons ตามปกติค่ะ');
+                    console.error(err);
+                }
+            } else {
+                if (gameState.webcamStream) gameState.webcamStream.getTracks().forEach(track => track.stop());
+                video.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                statusText.innerText = 'จำลองด้วยเมาส์/สัมผัส';
+                statusText.className = 'text-[10px] px-2.5 py-0.5 rounded-full bg-purple-950 text-amber-300 border border-amber-400/40 font-semibold';
+                camBtnText.innerText = 'กล้อง: ปิด';
+                gameState.cameraActive = false;
+            }
+        }
+
+        // Green Landmark Drawing Helper
+        function drawGreenLandmarks(ctx, landmarks, connections) {
+            const overlay = document.getElementById('webcamOverlay');
+            ctx.strokeStyle = '#00FF66';
+            ctx.fillStyle = '#00FF66';
+            ctx.lineWidth = 3;
+            ctx.shadowColor = '#00FF66';
+            ctx.shadowBlur = 10;
+
+            if (connections) {
+                connections.forEach(([i, j]) => {
+                    const p1 = landmarks[i];
+                    const p2 = landmarks[j];
+                    if (p1 && p2) {
+                        ctx.beginPath();
+                        ctx.moveTo(p1.x * overlay.width, p1.y * overlay.height);
+                        ctx.lineTo(p2.x * overlay.width, p2.y * overlay.height);
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            landmarks.forEach((p) => {
+                ctx.beginPath();
+                ctx.arc(p.x * overlay.width, p.y * overlay.height, 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function triggerGreenBadge(active) {
+            const badge = document.getElementById('greenDetectedBadge');
+            const container = document.getElementById('webcamFrameContainer');
+            if (active) {
+                badge.classList.remove('hidden');
+                container.classList.add('neon-green-glow');
+            } else {
+                badge.classList.add('hidden');
+                container.classList.remove('neon-green-glow');
+            }
+        }
+
+        function initMediaPipePose(videoElement) {
+            const overlay = document.getElementById('webcamOverlay');
+            const overlayCtx = overlay.getContext('2d');
+
+            const pose = new Pose({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+            });
+
+            pose.setOptions({
+                modelComplexity: 1,
+                smoothLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            let prevNose = null;
+
+            pose.onResults((results) => {
+                overlay.width = videoElement.videoWidth || 320;
+                overlay.height = videoElement.videoHeight || 240;
+                overlayCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (results.poseLandmarks) {
+                    triggerGreenBadge(true);
+                    
+                    // Draw Neon Green Skeleton Connections
+                    const POSE_CONNECTIONS = [
+                        [11, 12], [11, 13], [13, 15], [12, 14], [14, 16], // Arms/Shoulders
+                        [0, 1], [1, 2], [2, 3], [3, 7], [0, 4], [4, 5], [5, 6], [6, 8] // Upper Head
+                    ];
+                    drawGreenLandmarks(overlayCtx, results.poseLandmarks, POSE_CONNECTIONS);
+
+                    const lm = results.poseLandmarks;
+                    const nose = lm[0];
+
+                    if (nose && prevNose) {
+                        const distMove = Math.hypot(nose.x - prevNose.x, nose.y - prevNose.y);
+                        const targetEnergy = distMove * 1200 * (gameState.sensitivityMultiplier / 2.0);
+                        gameState.motionEnergy = smoothValue(gameState.motionEnergy, Math.min(100, targetEnergy), 0.35);
+                    }
+                    if (nose) prevNose = { x: nose.x, y: nose.y };
+
+                    if (nose) {
+                        const rawTilt = (0.5 - nose.x) * 3.2;
+                        gameState.bodyTilt = smoothValue(gameState.bodyTilt, rawTilt, 0.35);
+                    }
+                } else {
+                    triggerGreenBadge(false);
+                }
+            });
+
+            const camera = new Camera(videoElement, {
+                onFrame: async () => {
+                    if (gameState.cameraActive) await pose.send({ image: videoElement });
+                },
+                width: 320,
+                height: 240
+            });
+            camera.start();
+        }
+
+        function initMediaPipeHands(videoElement) {
+            const overlay = document.getElementById('webcamOverlay');
+            const overlayCtx = overlay.getContext('2d');
+
+            const hands = new Hands({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            });
+
+            hands.setOptions({ maxNumHands: 1, minDetectionConfidence: 0.5 });
+            hands.onResults((results) => {
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    triggerGreenBadge(true);
+                    
+                    const HAND_CONNECTIONS = [
+                        [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],
+                        [5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],
+                        [13,17],[17,18],[18,19],[19,20],[0,17]
+                    ];
+                    drawGreenLandmarks(overlayCtx, results.multiHandLandmarks[0], HAND_CONNECTIONS);
+
+                    const landmarks = results.multiHandLandmarks[0];
+                    const indexTip = landmarks[8];
+                    const thumbTip = landmarks[4];
+
+                    const targetX = (1 - indexTip.x) * canvas.width;
+                    const targetY = indexTip.y * canvas.height;
+
+                    gameState.handPos.x = smoothValue(gameState.handPos.x, targetX, 0.45);
+                    gameState.handPos.y = smoothValue(gameState.handPos.y, targetY, 0.45);
+
+                    const pinchDist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+                    gameState.handPos.isPinching = pinchDist < 0.1;
+
+                    if (landmarks[0] && landmarks[12]) {
+                        const handSpan = Math.hypot(landmarks[0].x - landmarks[12].x, landmarks[0].y - landmarks[12].y);
+                        const targetStretch = handSpan * 3.5 * (gameState.sensitivityMultiplier / 2.5);
+                        gameState.bodyStretchRatio = smoothValue(gameState.bodyStretchRatio, Math.min(1, Math.max(0, targetStretch)), 0.3);
+                    }
+                }
+            });
+        }
+
+        function initMediaPipeFaceMesh(videoElement) {
+            const overlay = document.getElementById('webcamOverlay');
+            const overlayCtx = overlay.getContext('2d');
+
+            const faceMesh = new FaceMesh({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+            });
+
+            faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: true, minDetectionConfidence: 0.5 });
+            faceMesh.onResults((results) => {
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    triggerGreenBadge(true);
+                    
+                    // Highlight key facial points in green
+                    drawGreenLandmarks(overlayCtx, results.multiFaceLandmarks[0], null);
+
+                    const landmarks = results.multiFaceLandmarks[0];
+                    const upperLip = landmarks[13];
+                    const lowerLip = landmarks[14];
+
+                    const lipDist = Math.hypot(upperLip.x - lowerLip.x, upperLip.y - lowerLip.y);
+                    
+                    if (lipDist > 0.03) {
+                        gameState.blowIntensity = Math.min(100, gameState.blowIntensity + (lipDist * 420));
+                    }
+
+                    const normalizedHeight = Math.min(1, Math.max(0, (lipDist - 0.01) * 20));
+                    gameState.squatHeight = smoothValue(gameState.squatHeight, normalizedHeight, 0.35);
+                }
+            });
+        }
+
+        window.onload = () => {
+            selectLevel(1);
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
